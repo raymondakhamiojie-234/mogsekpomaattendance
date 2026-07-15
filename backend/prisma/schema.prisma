@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  role      String   @default("ADMIN") // ADMIN, SUB_ADMIN, USER
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Member {
+  id              String   @id @default(uuid())
+  firstName       String
+  lastName        String
+  gender          String
+  dateOfBirth     DateTime?
+  phoneNumber     String?
+  whatsappNumber  String?
+  email           String?
+  homeAddress     String?
+  occupation      String?
+  maritalStatus   String?
+  dateJoined      DateTime @default(now())
+  baptized        Boolean  @default(false)
+  isWorker        Boolean  @default(false)
+  position        String   // Major General, Pastor, Coordinator, S-Man, Leader, Worker, Soul
+  status          String   @default("Active") // Active, Inactive, Transferred, Dead
+  profilePicture  String?
+  
+  parentId        String?  // The ID of their direct leader
+  parent          Member?  @relation("MemberHierarchy", fields: [parentId], references: [id])
+  children        Member[] @relation("MemberHierarchy")
+  
+  referredById    String?
+  referredBy      Member?  @relation("ReferredBy", fields: [referredById], references: [id])
+  referrals       Member[] @relation("ReferredBy")
+
+  attendances     Attendance[]
+  tithes          Tithe[]
+  
+  transfersFrom   TransferLog[] @relation("TransferredFrom")
+  transfersTo     TransferLog[] @relation("TransferredTo")
+  transfers       TransferLog[] @relation("TransferredMember")
+  
+  familyId        String?
+  family          Family?  @relation(fields: [familyId], references: [id])
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  name        String   // Sunday Service, Wednesday Service, Night Vigil, etc.
+  date        DateTime
+  attendances Attendance[]
+  createdAt   DateTime @default(now())
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  memberId  String
+  member    Member   @relation(fields: [memberId], references: [id])
+  serviceId String
+  service   Service  @relation(fields: [serviceId], references: [id])
+  status    String   // Present, Absent, Late, Excused
+  markedBy  String?  // User ID or name of the person who marked it
+  createdAt DateTime @default(now())
+  
+  @@unique([memberId, serviceId])
+}
+
+model Tithe {
+  id        String   @id @default(uuid())
+  memberId  String
+  member    Member   @relation(fields: [memberId], references: [id])
+  amount    Float
+  date      DateTime @default(now())
+  method    String   // Cash, Transfer, POS
+  reference String?
+  remarks   String?
+  createdAt DateTime @default(now())
+}
+
+model TransferLog {
+  id                 String   @id @default(uuid())
+  memberId           String
+  member             Member   @relation("TransferredMember", fields: [memberId], references: [id])
+  transferredFromId  String?
+  transferredFrom    Member?  @relation("TransferredFrom", fields: [transferredFromId], references: [id])
+  transferredToId    String?
+  transferredTo      Member?  @relation("TransferredTo", fields: [transferredToId], references: [id])
+  reason             String?
+  date               DateTime @default(now())
+  adminId            String?  // Admin who performed the transfer
+}
+
+model Family {
+  id        String   @id @default(uuid())
+  name      String
+  members   Member[]
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String
+  details   String
+  createdAt DateTime @default(now())
+}
