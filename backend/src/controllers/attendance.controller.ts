@@ -53,7 +53,7 @@ export const markAttendance = async (req: Request, res: Response) => {
 
 export const getAttendanceForService = async (req: Request, res: Response) => {
   try {
-    const { serviceId } = req.params;
+    const serviceId = req.params.serviceId as string;
     const attendances = await prisma.attendance.findMany({
       where: { serviceId },
       include: { member: true }
