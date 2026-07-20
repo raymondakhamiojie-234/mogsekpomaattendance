@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMemberById, getMembers, transferMember } from '../services/member.service';
-import { ArrowLeft, User, Phone, MapPin, Calendar, Briefcase, Activity, Share2, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Calendar, Briefcase, Activity, Share2, X, Loader2 } from 'lucide-react';
 
 const OrgNode = ({ member, isRoot = false }: { member: any; isRoot?: boolean }) => {
   if (!member) return null;
