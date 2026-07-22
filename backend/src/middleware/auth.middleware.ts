@@ -24,7 +24,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
   const user = (req as any).user;
   
-  if (user && user.role === 'ADMIN') {
+  if (user && user.role && user.role.toUpperCase() === 'ADMIN') {
     next();
   } else {
     return res.status(403).json({ message: 'Admin privileges required' });
