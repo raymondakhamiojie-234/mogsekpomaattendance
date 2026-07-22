@@ -16,9 +16,9 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
     const inactiveMembers = await prisma.member.count({ where: { status: 'Inactive' } });
 
-    // Tithes sum (simple implementation)
     const tithes = await prisma.tithe.aggregate({
-      _sum: { amount: true }
+      _sum: { amount: true },
+      where: { type: 'Tithe' }
     });
 
     res.json({

@@ -3,8 +3,8 @@ import cors from 'cors';
 import authRoutes from './routes/auth.routes';
 import memberRoutes from './routes/member.routes';
 import attendanceRoutes from './routes/attendance.routes';
-import titheRoutes from './routes/tithe.routes';
 import dashboardRoutes from './routes/dashboard.routes';
+import financeRoutes from './routes/finance.routes';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -18,8 +18,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/attendance', attendanceRoutes);
-app.use('/api/tithes', titheRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/finance', financeRoutes);
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'Church Management System API is running.' });

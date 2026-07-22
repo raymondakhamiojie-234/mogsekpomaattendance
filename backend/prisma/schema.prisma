@@ -83,8 +83,9 @@ model Attendance {
 
 model Tithe {
   id        String   @id @default(uuid())
-  memberId  String
-  member    Member   @relation(fields: [memberId], references: [id])
+  memberId  String?
+  member    Member?  @relation(fields: [memberId], references: [id])
+  type      String   @default("Tithe") // Tithe, Offering, Seed, etc.
   amount    Float
   date      DateTime @default(now())
   method    String   // Cash, Transfer, POS

@@ -22,7 +22,27 @@ const Attendance = () => {
   const markMutation = useMutation({
     mutationFn: (data: { memberId: string; status: string }) => 
       markAttendance({ serviceName: serviceType, date, memberId: data.memberId, status: data.status }),
-    onSuccess: () => {
+    onMutate: async (newData) => {
+      await queryClient.cancelQueries({ queryKey: ['attendance', serviceType, date] });
+      const previousAttendances = queryClient.getQueryData(['attendance', serviceType, date]);
+      
+      queryClient.setQueryData(['attendance', serviceType, date], (old: any) => {
+        const oldData = old || [];
+        const index = oldData.findIndex((a: any) => a.memberId === newData.memberId);
+        if (index !== -1) {
+          const updated = [...oldData];
+          updated[index] = { ...updated[index], status: newData.status, markedAt: new Date().toISOString() };
+          return updated;
+        } else {
+          return [...oldData, { memberId: newData.memberId, status: newData.status, markedAt: new Date().toISOString() }];
+        }
+      });
+      return { previousAttendances };
+    },
+    onError: (err, newData, context) => {
+      queryClient.setQueryData(['attendance', serviceType, date], context?.previousAttendances);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['attendance', serviceType, date] });
     },
   });
