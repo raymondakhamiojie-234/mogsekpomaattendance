@@ -35,6 +35,7 @@ model Member {
   position        String   // Major General, Pastor, Coordinator, S-Man, Leader, Worker, Soul
   status          String   @default("Active") // Active, Inactive, Transferred, Dead
   profilePicture  String?
+  ranking         String?  // Regional General, State General, Base General, Asst Base General
   
   parentId        String?  // The ID of their direct leader
   parent          Member?  @relation("MemberHierarchy", fields: [parentId], references: [id])

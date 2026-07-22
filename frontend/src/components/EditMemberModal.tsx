@@ -1,14 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Loader2 } from 'lucide-react';
-import { createMember } from '../services/member.service';
+import { updateMember } from '../services/member.service';
 
-interface AddMemberModalProps {
+interface EditMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
+  member: any;
 }
 
-const AddMemberModal = ({ isOpen, onClose }: AddMemberModalProps) => {
+const EditMemberModal = ({ isOpen, onClose, member }: EditMemberModalProps) => {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     firstName: '',
@@ -21,25 +22,31 @@ const AddMemberModal = ({ isOpen, onClose }: AddMemberModalProps) => {
     ranking: '',
   });
 
+  useEffect(() => {
+    if (member) {
+      setFormData({
+        firstName: member.firstName || '',
+        lastName: member.lastName || '',
+        gender: member.gender || 'Male',
+        position: member.position || 'Soul',
+        phoneNumber: member.phoneNumber || '',
+        email: member.email || '',
+        status: member.status || 'Active',
+        ranking: member.ranking || '',
+      });
+    }
+  }, [member]);
+
   const mutation = useMutation({
-    mutationFn: createMember,
+    mutationFn: (data: any) => updateMember(member.id, data),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['member', member.id] });
       queryClient.invalidateQueries({ queryKey: ['members'] });
       onClose();
-      setFormData({
-        firstName: '',
-        lastName: '',
-        gender: 'Male',
-        position: 'Soul',
-        phoneNumber: '',
-        email: '',
-        status: 'Active',
-        ranking: '',
-      });
     },
   });
 
-  if (!isOpen) return null;
+  if (!isOpen || !member) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +61,7 @@ const AddMemberModal = ({ isOpen, onClose }: AddMemberModalProps) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 overflow-y-auto">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 my-8 relative">
         <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Add New Member</h3>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Edit Profile</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-500 transition-colors">
             <X className="w-6 h-6" />
           </button>
@@ -168,7 +175,7 @@ const AddMemberModal = ({ isOpen, onClose }: AddMemberModalProps) => {
 
           {mutation.isError && (
             <div className="bg-red-50 border-l-4 border-red-500 p-4">
-              <p className="text-sm text-red-700">{(mutation.error as any)?.message || 'Failed to add member'}</p>
+              <p className="text-sm text-red-700">{(mutation.error as any)?.message || 'Failed to update member'}</p>
             </div>
           )}
 
@@ -186,7 +193,7 @@ const AddMemberModal = ({ isOpen, onClose }: AddMemberModalProps) => {
               className="flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
             >
               {mutation.isPending ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : null}
-              Save Member
+              Save Changes
             </button>
           </div>
         </form>
@@ -195,4 +202,4 @@ const AddMemberModal = ({ isOpen, onClose }: AddMemberModalProps) => {
   );
 };
 
-export default AddMemberModal;
+export default EditMemberModal;

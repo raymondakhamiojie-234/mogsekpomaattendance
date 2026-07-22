@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMemberById, getMembers, transferMember } from '../services/member.service';
 import { ArrowLeft, Phone, MapPin, Calendar, Briefcase, Activity, Share2, X, Loader2 } from 'lucide-react';
+import EditMemberModal from '../components/EditMemberModal';
 
 const OrgNode = ({ member, isRoot = false }: { member: any; isRoot?: boolean }) => {
   if (!member) return null;
@@ -46,6 +47,7 @@ const MemberProfile = () => {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedLeaderId, setSelectedLeaderId] = useState('');
 
   const { data: member, isLoading, isError } = useQuery({
@@ -99,6 +101,11 @@ const MemberProfile = () => {
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 mt-2">
               {member.position}
             </span>
+            {member.ranking && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 mt-2">
+                {member.ranking}
+              </span>
+            )}
           </div>
 
           <div className="mt-8 space-y-4">
@@ -123,7 +130,10 @@ const MemberProfile = () => {
           <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700">
              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h4>
              <div className="flex gap-2">
-               <button className="flex-1 bg-primary text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors">
+               <button 
+                 onClick={() => setIsEditModalOpen(true)}
+                 className="flex-1 bg-primary text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
+               >
                  Edit Profile
                </button>
                <button 
@@ -225,6 +235,11 @@ const MemberProfile = () => {
           </div>
         </div>
       )}
+      <EditMemberModal 
+        isOpen={isEditModalOpen} 
+        onClose={() => setIsEditModalOpen(false)} 
+        member={member} 
+      />
     </div>
   );
 };

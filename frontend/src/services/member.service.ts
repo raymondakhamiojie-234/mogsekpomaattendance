@@ -10,6 +10,11 @@ export const createMember = async (memberData: any) => {
   return response.data;
 };
 
+export const updateMember = async (id: string, memberData: any) => {
+  const response = await api.put(`/members/${id}`, memberData);
+  return response.data;
+};
+
 export const getDashboardStats = async () => {
   const response = await api.get('/dashboard/stats');
   return response.data;
