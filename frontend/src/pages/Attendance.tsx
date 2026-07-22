@@ -14,7 +14,7 @@ const Attendance = () => {
     queryFn: getMembers,
   });
 
-  const { data: attendances = [], isLoading: loadingAttendance } = useQuery({
+  const { data: attendances = [] } = useQuery({
     queryKey: ['attendance', serviceType, date],
     queryFn: () => getAttendanceForService(serviceType, date),
   });
