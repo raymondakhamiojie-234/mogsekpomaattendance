@@ -39,7 +39,7 @@ const Attendance = () => {
       });
       return { previousAttendances };
     },
-    onError: (err, newData, context) => {
+    onError: (_err, _newData, context) => {
       queryClient.setQueryData(['attendance', serviceType, date], context?.previousAttendances);
     },
     onSettled: () => {

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getFinances, createFinance } from '../services/finance.service';
 import { getMembers } from '../services/member.service';
-import { Loader2, Plus, ArrowDownToLine, ArrowUpRight, DollarSign, Wallet } from 'lucide-react';
+import { Loader2, Plus, DollarSign, Wallet } from 'lucide-react';
 
 const Finance = () => {
   const queryClient = useQueryClient();
