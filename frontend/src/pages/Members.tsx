@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Search, Plus, MoreVertical, Filter, Download, Loader2 } from 'lucide-react';
 import { getMembers } from '../services/member.service';
+import AddMemberModal from '../components/AddMemberModal';
 
 const Members = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const { data: members = [], isLoading, isError } = useQuery({
     queryKey: ['members'],
@@ -25,7 +27,10 @@ const Members = () => {
           <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Members Directory</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">Manage church members, leaders, and their details.</p>
         </div>
-        <button className="flex items-center bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+        <button 
+          onClick={() => setIsAddModalOpen(true)}
+          className="flex items-center bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+        >
           <Plus className="w-5 h-5 mr-2" />
           Add Member
         </button>
@@ -121,6 +126,10 @@ const Members = () => {
           )}
         </div>
       </div>
+      <AddMemberModal 
+        isOpen={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+      />
     </div>
   );
 };

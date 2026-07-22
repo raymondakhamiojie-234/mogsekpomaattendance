@@ -5,6 +5,11 @@ export const getMembers = async () => {
   return response.data;
 };
 
+export const createMember = async (memberData: any) => {
+  const response = await api.post('/members', memberData);
+  return response.data;
+};
+
 export const getDashboardStats = async () => {
   const response = await api.get('/dashboard/stats');
   return response.data;
