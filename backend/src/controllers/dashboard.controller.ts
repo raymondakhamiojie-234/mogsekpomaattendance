@@ -3,8 +3,9 @@ import prisma from '../config/prisma';
 
 export const getDashboardStats = async (req: Request, res: Response) => {
   try {
-    const totalSouls = await prisma.member.count();
-    const totalWorkers = await prisma.member.count({ where: { isWorker: true } });
+    const totalMembers = await prisma.member.count();
+    const totalSouls = await prisma.member.count({ where: { position: 'Soul' } });
+    const totalWorkers = await prisma.member.count({ where: { position: 'Worker' } });
     const totalLeaders = await prisma.member.count({
       where: {
         position: {
@@ -21,6 +22,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     });
 
     res.json({
+      totalMembers,
       totalSouls,
       totalWorkers,
       totalLeaders,

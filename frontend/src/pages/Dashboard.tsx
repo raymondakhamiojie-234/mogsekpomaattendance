@@ -53,8 +53,9 @@ const Dashboard = () => {
         <p className="text-sm text-gray-500 dark:text-gray-400">Overview of the Ministry's growth and attendance.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Total Souls" value={stats?.totalSouls || 0} icon={Users} trend="12%" trendUp={true} isLoading={isLoading} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <StatCard title="Total Members" value={stats?.totalMembers || 0} icon={Users} trend="10%" trendUp={true} isLoading={isLoading} />
+        <StatCard title="Total Souls" value={stats?.totalSouls || 0} icon={UserPlus} trend="12%" trendUp={true} isLoading={isLoading} />
         <StatCard title="Total Leaders" value={stats?.totalLeaders || 0} icon={UserPlus} trend="4%" trendUp={true} isLoading={isLoading} />
         <StatCard title="Total Workers" value={stats?.totalWorkers || 0} icon={Users} trend="2%" trendUp={true} isLoading={isLoading} />
         <StatCard title="Inactive Members" value={stats?.inactiveMembers || 0} icon={UserMinus} trend="1%" trendUp={false} isLoading={isLoading} />

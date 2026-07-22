@@ -8,6 +8,7 @@ router.use(authenticate);
 
 router.get('/services', getServices);
 router.get('/services/:serviceId', getAttendanceForService);
+router.get('/', getAttendanceForService);
 
 // Admin only routes
 router.post('/services', requireAdmin, createService);

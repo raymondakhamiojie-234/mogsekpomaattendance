@@ -26,19 +26,54 @@ export const getServices = async (req: Request, res: Response) => {
 
 export const markAttendance = async (req: Request, res: Response) => {
   try {
-    const { serviceId, memberId, status } = req.body;
+    const { serviceId, serviceName, date, memberId, status } = req.body;
     const adminId = (req as any).user.id;
     
+    let activeServiceId = serviceId;
+    
+    // If no serviceId provided, find or create the service by name and date
+    if (!activeServiceId && serviceName && date) {
+      const parsedDate = new Date(date);
+      // Start of day and end of day to match the date regardless of time
+      const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999));
+      
+      let service = await prisma.service.findFirst({
+        where: {
+          name: serviceName,
+          date: {
+            gte: startOfDay,
+            lte: endOfDay,
+          }
+        }
+      });
+      
+      if (!service) {
+        service = await prisma.service.create({
+          data: {
+            name: serviceName,
+            date: new Date(date),
+          }
+        });
+      }
+      
+      activeServiceId = service.id;
+    }
+    
+    if (!activeServiceId) {
+      return res.status(400).json({ message: 'Service details required' });
+    }
+
     const attendance = await prisma.attendance.upsert({
       where: {
         memberId_serviceId: {
           memberId,
-          serviceId,
+          serviceId: activeServiceId,
         }
       },
       update: { status, markedBy: adminId },
       create: {
-        serviceId,
+        serviceId: activeServiceId,
         memberId,
         status,
         markedBy: adminId,
@@ -54,8 +89,37 @@ export const markAttendance = async (req: Request, res: Response) => {
 export const getAttendanceForService = async (req: Request, res: Response) => {
   try {
     const serviceId = req.params.serviceId as string;
+    const { serviceName, date } = req.query;
+
+    let targetServiceId = serviceId;
+
+    if (!targetServiceId && serviceName && date) {
+      const parsedDate = new Date(date as string);
+      const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999));
+
+      const service = await prisma.service.findFirst({
+        where: {
+          name: serviceName as string,
+          date: {
+            gte: startOfDay,
+            lte: endOfDay,
+          }
+        }
+      });
+
+      if (!service) {
+        return res.json([]);
+      }
+      targetServiceId = service.id;
+    }
+
+    if (!targetServiceId) {
+      return res.status(400).json({ message: 'Service details required' });
+    }
+
     const attendances = await prisma.attendance.findMany({
-      where: { serviceId },
+      where: { serviceId: targetServiceId },
       include: { member: true }
     });
     res.json(attendances);

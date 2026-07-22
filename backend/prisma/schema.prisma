@@ -75,6 +75,7 @@ model Attendance {
   service   Service  @relation(fields: [serviceId], references: [id])
   status    String   // Present, Absent, Late, Excused
   markedBy  String?  // User ID or name of the person who marked it
+  markedAt  DateTime? @updatedAt
   createdAt DateTime @default(now())
   
   @@unique([memberId, serviceId])

@@ -1,22 +1,44 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Calendar as CalendarIcon, CheckCircle2, XCircle, Clock } from 'lucide-react';
-import { getMembers } from '../services/member.service';
+import { getMembers, markAttendance, getAttendanceForService } from '../services/member.service';
 
 const Attendance = () => {
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [serviceType, setServiceType] = useState('Sunday Service');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const { data: members = [], isLoading } = useQuery({
+  const { data: members = [], isLoading: loadingMembers } = useQuery({
     queryKey: ['members'],
     queryFn: getMembers,
+  });
+
+  const { data: attendances = [], isLoading: loadingAttendance } = useQuery({
+    queryKey: ['attendance', serviceType, date],
+    queryFn: () => getAttendanceForService(serviceType, date),
+  });
+
+  const markMutation = useMutation({
+    mutationFn: (data: { memberId: string; status: string }) => 
+      markAttendance({ serviceName: serviceType, date, memberId: data.memberId, status: data.status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['attendance', serviceType, date] });
+    },
   });
 
   const filteredMembers = members.filter((member: any) => 
     member.firstName.toLowerCase().includes(searchTerm.toLowerCase()) || 
     member.lastName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const getMemberAttendance = (memberId: string) => {
+    return attendances.find((a: any) => a.memberId === memberId);
+  };
+
+  const handleMark = (memberId: string, status: string) => {
+    markMutation.mutate({ memberId, status });
+  };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -68,44 +90,87 @@ const Attendance = () => {
               <tr>
                 <th className="px-6 py-4 font-medium">Member</th>
                 <th className="px-6 py-4 font-medium">Position</th>
-                <th className="px-6 py-4 font-medium">Contact</th>
+                <th className="px-6 py-4 font-medium">Status & Time</th>
                 <th className="px-6 py-4 font-medium text-right">Mark Status</th>
               </tr>
             </thead>
             <tbody>
-              {isLoading ? (
+              {loadingMembers ? (
                 <tr><td colSpan={4} className="text-center py-8 text-gray-500">Loading members...</td></tr>
               ) : filteredMembers.length === 0 ? (
                 <tr><td colSpan={4} className="text-center py-8 text-gray-500">No members found.</td></tr>
               ) : (
-                filteredMembers.map((member: any) => (
-                  <tr key={member.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-gray-900 dark:text-white flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs uppercase">
-                        {member.firstName.charAt(0)}
-                      </div>
-                      <div>
-                        {member.firstName} {member.lastName}
-                        {member.isWorker && <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">Worker</span>}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{member.position}</td>
-                    <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{member.phoneNumber || 'N/A'}</td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button className="flex items-center gap-1 px-3 py-1.5 border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors">
-                          <CheckCircle2 className="w-4 h-4" /> Present
-                        </button>
-                        <button className="flex items-center gap-1 px-3 py-1.5 border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors">
-                          <XCircle className="w-4 h-4" /> Absent
-                        </button>
-                        <button className="flex items-center gap-1 px-3 py-1.5 border border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors">
-                          <Clock className="w-4 h-4" /> Late
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                filteredMembers.map((member: any) => {
+                  const record = getMemberAttendance(member.id);
+                  const isPresent = record?.status === 'Present';
+                  const isAbsent = record?.status === 'Absent';
+                  const isLate = record?.status === 'Late';
+
+                  return (
+                    <tr key={member.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                      <td className="px-6 py-4 font-medium text-gray-900 dark:text-white flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs uppercase">
+                          {member.firstName.charAt(0)}
+                        </div>
+                        <div>
+                          {member.firstName} {member.lastName}
+                          {member.isWorker && <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">Worker</span>}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{member.position}</td>
+                      <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
+                        {record ? (
+                          <div>
+                            <span className={`font-semibold ${isPresent ? 'text-green-600' : isAbsent ? 'text-red-600' : 'text-yellow-600'}`}>
+                              {record.status}
+                            </span>
+                            {record.markedAt && (
+                              <span className="block text-xs text-gray-400 mt-1">
+                                {new Date(record.markedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-xs italic">Not Marked</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button 
+                            onClick={() => handleMark(member.id, 'Present')}
+                            className={`flex items-center gap-1 px-3 py-1.5 border rounded transition-colors ${
+                              isPresent 
+                                ? 'bg-green-500 text-white border-green-500' 
+                                : 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/40'
+                            }`}
+                          >
+                            <CheckCircle2 className="w-4 h-4" /> Present
+                          </button>
+                          <button 
+                            onClick={() => handleMark(member.id, 'Absent')}
+                            className={`flex items-center gap-1 px-3 py-1.5 border rounded transition-colors ${
+                              isAbsent 
+                                ? 'bg-red-500 text-white border-red-500' 
+                                : 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40'
+                            }`}
+                          >
+                            <XCircle className="w-4 h-4" /> Absent
+                          </button>
+                          <button 
+                            onClick={() => handleMark(member.id, 'Late')}
+                            className={`flex items-center gap-1 px-3 py-1.5 border rounded transition-colors ${
+                              isLate 
+                                ? 'bg-yellow-500 text-white border-yellow-500' 
+                                : 'border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-900/40'
+                            }`}
+                          >
+                            <Clock className="w-4 h-4" /> Late
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

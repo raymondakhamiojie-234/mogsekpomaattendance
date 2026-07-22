@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Users, LayoutDashboard, Calendar, Settings, LogOut } from 'lucide-react';
+import { Users, LayoutDashboard, Calendar, Settings, LogOut, Network } from 'lucide-react';
 
 const Layout = () => {
   const location = useLocation();
@@ -8,6 +8,7 @@ const Layout = () => {
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Members', href: '/members', icon: Users },
     { name: 'Attendance', href: '/attendance', icon: Calendar },
+    { name: 'Leadership', href: '/leadership', icon: Network },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
