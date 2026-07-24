@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { X, Loader2 } from 'lucide-react';
-import { createMember } from '../services/member.service';
+import { createMember, getMembers } from '../services/member.service';
 
 interface AddMemberModalProps {
   isOpen: boolean;
@@ -10,6 +10,11 @@ interface AddMemberModalProps {
 
 const AddMemberModal = ({ isOpen, onClose }: AddMemberModalProps) => {
   const queryClient = useQueryClient();
+  const { data: members = [] } = useQuery({
+    queryKey: ['members'],
+    queryFn: getMembers,
+  });
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -19,6 +24,7 @@ const AddMemberModal = ({ isOpen, onClose }: AddMemberModalProps) => {
     email: '',
     status: 'Active',
     ranking: '',
+    parentId: '',
   });
 
   const mutation = useMutation({
@@ -35,6 +41,7 @@ const AddMemberModal = ({ isOpen, onClose }: AddMemberModalProps) => {
         email: '',
         status: 'Active',
         ranking: '',
+        parentId: '',
       });
     },
   });
@@ -43,7 +50,11 @@ const AddMemberModal = ({ isOpen, onClose }: AddMemberModalProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    mutation.mutate(formData);
+    const payload = { ...formData };
+    if (!payload.parentId) {
+      delete (payload as any).parentId;
+    }
+    mutation.mutate(payload);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -162,6 +173,22 @@ const AddMemberModal = ({ isOpen, onClose }: AddMemberModalProps) => {
                 <option value="Base General">Base General</option>
                 <option value="State General">State General</option>
                 <option value="Regional General">Regional General</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Invited By / Linked To (Optional)</label>
+              <select
+                name="parentId"
+                value={formData.parentId}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
+              >
+                <option value="">None</option>
+                {members.map((m: any) => (
+                  <option key={m.id} value={m.id}>
+                    {m.firstName} {m.lastName} ({m.position})
+                  </option>
+                ))}
               </select>
             </div>
           </div>
