@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMemberById, getMembers, transferMember } from '../services/member.service';
-import { ArrowLeft, Phone, MapPin, Calendar, Briefcase, Activity, Share2, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Calendar, Briefcase, Activity, Share2, X, Loader2, User } from 'lucide-react';
 import EditMemberModal from '../components/EditMemberModal';
 
 const OrgNode = ({ member, isRoot = false }: { member: any; isRoot?: boolean }) => {
@@ -125,6 +125,12 @@ const MemberProfile = () => {
               <Calendar className="w-4 h-4 mr-3 text-gray-400" />
               Joined: {new Date(member.dateJoined).toLocaleDateString()}
             </div>
+            {member.parent && (
+              <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                <User className="w-4 h-4 mr-3 text-gray-400" />
+                Invited By: <Link to={`/members/${member.parent.id}`} className="ml-1 text-primary hover:underline font-medium">{member.parent.firstName} {member.parent.lastName}</Link>
+              </div>
+            )}
           </div>
           
           <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700">
